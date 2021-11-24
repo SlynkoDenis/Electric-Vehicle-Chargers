@@ -5,16 +5,12 @@ contract Charger {
     // dummy values, not for release version
     enum TypeOfCable {TYPE1, TYPE2, TYPE3}
     struct DepositInfo {
-        // in bytes40 we can store concatenated {year, month, day, hour, time}
-        // using bytes40 allows to easily compare dates. However, there is no bytes40.
-        // But we can always divide the data into two variables
-        bytes32 startTime1;
-        uint8 startMinute;
-        bytes32 endTime1;
-        uint8 endMinute;
+        // time is measured in seconds since unix epoch
+        uint startTime;
+        uint20 durationInMinutes;
         address user;
-        uint depositMoney;
-        bool isActive;                                  // true for open, false for closed
+        int32 left;
+        int32 right;
     }
 
     uint16 private power;
@@ -22,9 +18,10 @@ contract Charger {
     uint private tariff;                                // tariff is represented in wei per minute
     string private latitude;                            // e.g. 55.423791
     string private longitude;                           // e.g. 37.518223
-    DepositInfo[] private reservations;
     bool private isWorking;
-    mapping(address => DepositInfo) activeDeposits;
+    DepositInfo[] private reservations;
+    uint32[] private freeIndexes;
+    uint32 root;
 
 
     constructor(uint16 _power, uint8 _cableType, uint _tariff,
@@ -36,45 +33,27 @@ contract Charger {
         latitude = _latitude;
         longitude = _longitude;
         isWorking = true;
+
+        root = 0;
     }
 
+    function insertDeposit(uint _startTime, uint20 _durationInMinutes, address _user) private {
+        if (reservations.length == 0) {
+            reservations.push(DepositInfo(_startTime, _durationInMinutes, _user, ));
+        } else {
+            // ....
+        }
+    }
 
     function setIsWorking(bool _value) external {
         isWorking = _value;
     }
 
-
     function getIsWorking() external view returns(bool) {
         return isWorking;
     }
 
-
-    // return bool(lhs <= rhs)
-    // function isDayEarlier(ReserveTime lhs, ReserveTime rhs) external pure returns(bool) {
-    //     if (lhs.year < rhs.year) {
-    //         return true;
-    //     } else if (lhs.year == rhs.year) {
-    //         if (lhs.month < rhs.month) {
-    //             return true;
-    //         } else if (lhs.month == rhs.month) {
-    //             if (lhs.day < rhs.day) {
-    //                 return true;
-    //             } else if (lhs.day == rhs.day) {
-    //                 if (lhs.hour < rhs.hour) {
-    //                     return true;
-    //                 } else if (lhs.hour == rhs.hour) {
-    //                     if (lhs.minute <= rhs.minute) {
-    //                         return true;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return false;
-    // }
-
-    function isAvailable(bytes32 _startTime1, uint8 _startMinute,
-                         bytes32 _endTime1, uint8 _endMinute) external view returns(bool) {
+    function isAvailable(uint _startTime, uint20 _durationInMinutes) external view returns(bool) {
         if (reservations.length == 0) {
             return true;
         }
@@ -95,99 +74,37 @@ contract Charger {
             }
         }
 
-        // TODO: implement binary search
-        // uint32 i = reservations.length / 2;
-        // uint32 step = reservations.length / 4;
-
-        // while (step > 0 && i < reservations.length && i >= 0) {
-        //     if (isDayEarlier(reservations[i], checkedTime)) {
-        //         i += step;
-        //     } else {
-        //         i -= step;
-        //     }
-        //     step /= 2;
-        // }
         return false;
     }
 
-
-    // taken from https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol
-    function bytesToUint8(bytes32 _bytes, uint _start) private pure returns(uint8) {
-        require(_start < 32, "toUint8_outOfBounds");
-        uint8 res;
-
-        assembly {
-            res := mload(add(add(_bytes, 0x1), _start))
-        }
-
-        return res;
-    }
-
-
     // public is used because the method can be called internally
-    // assuming that charging can't take more than a day
-    // TODO: check that all hour:minute:month:date:year have valid values
-    function calculateRequiredDeposit(bytes32 _startTime1, uint8 _startMinute,
-                                      bytes32 _endTime1, uint8 _endMinute) public view returns(uint) {
-        require(_endTime1 > _startTime1, "calculateRequiredDeposit_invalidDates");
-        uint money = 0;
-
-        uint8 yearGap = bytesToUint8(_endTime1, 0) - bytesToUint8(_startTime1, 0);
-        require(yearGap <= 1, "calculateRequiredDeposit_tooMuchTime");
-
-        uint8 monthGap = 0;
-        if (yearGap == 1) {
-            require(bytesToUint8(_endTime1, 8) == 1, "calculateRequiredDeposit_tooMuchTime");
-            monthGap = 1;
-        } else {
-            monthGap = bytesToUint8(_endTime1, 8) - bytesToUint8(_startTime1, 8);
-        }
-        require(monthGap <= 1, "calculateRequiredDeposit_tooMuchTime");
-
-        uint8 dayGap = 0;
-        if (monthGap == 1) {
-            require(bytesToUint8(_endTime1, 16) == 1, "calculateRequiredDeposit_tooMuchTime");
-            dayGap = 1;
-        } else {
-            dayGap = bytesToUint8(_endTime1, 16) - bytesToUint8(_startTime1, 16);
-        }
-        require(dayGap <= 1, "calculateRequiredDeposit_tooMuchTime");
-
-        uint8 startHour = bytesToUint8(_startTime1, 24);
-        uint8 endHour = bytesToUint8(_endTime1, 24);
-        uint16 durationInMinutes = 0;
-        if (dayGap == 1) {
-            durationInMinutes = 60 - _startMinute + (23 - startHour + endHour) * 60  + _endMinute;
-        } else {
-            if (startHour == endHour) {
-                durationInMinutes = _endMinute - _startMinute;
-            } else {
-                durationInMinutes = 60 - _startMinute + (endHour - startHour - 1) * 60 + _endMinute;
-            }
-        }
-        money = tariff * durationInMinutes;
+    // assuming that charging time is between 5 minutes and one day
+    function calculateRequiredDeposit(uint20 _durationInMinutes) public view returns(uint) {
+        require(_durationInMinutes > 5 && _durationInMinutes < 1440, "calculateRequiredDeposit_invalidReservedTime");
+        return _durationInMinutes * tariff;
     }
 
-
-    function receiveDeposit(bytes32 _startTime1, uint8 _startMinute,
-                            bytes32 _endTime1, uint8 _endMinute) external payable {
-        if (msg.value < calculateRequiredDeposit(_startTime1, _startMinute, _endTime1, _endMinute)) {
+    function receiveDeposit(uint _startTime, uint20 _durationInMinutes) external payable {
+        if (!isAvailable(_startTime, _durationInMinutes)) {
+            msg.sender.transfer(msg.value);
+            revert("receiveDeposit_timeIsNotAvailable");
+        }
+        if (msg.value < calculateRequiredDeposit(_durationInMinutes)) {
+            msg.sender.transfer(msg.value);
             revert("receiveDeposit_notEnoughMoney");
         }
         // TODO: add to the queue and mapping, set isActive to true
     }
 
-
-    function cancelOrder(address payable _depositAddress) payable external {
-        if (!activeDeposits[_depositAddress].isActive) {
+    function cancelOrder() payable external {
+        if (!activeDeposits[msg.sender].isActive) {
             revert("cancelOrder_addressIsNotActive");
         }
 
-        _depositAddress.transfer(activeDeposits[_depositAddress].depositMoney / 100 * 95);
-        activeDeposits[_depositAddress].isActive = false;
+        msg.sender.transfer(activeDeposits[msg.sender].depositMoney / 100 * 95);
+        activeDeposits[msg.sender].isActive = false;
         // TODO: remove from queue
     }
-
 
     function closeOrder(address payable) payable external returns(bool) {
         // TODO: method must be triggered by the physical charger controller aka Oracle.

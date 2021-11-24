@@ -13,7 +13,6 @@ contract ChargersListing {
         return chargers[id];
     }
 
-
     function addCharger(uint64 id, uint16 _power, uint8 _cableType, uint _tariff,
                         string memory _latitude, string memory _longitude) public returns (bool) {
         if (chargers[id].getIsWorking()) {
