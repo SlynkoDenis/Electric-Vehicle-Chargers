@@ -37,7 +37,7 @@ contract Charger {
         bool isWorking
     );
 
-    uint16 public power;
+    uint16 public power;                                            // in kW
     TypeOfCable public cableType;
     uint public tariff;                                             // tariff is represented in wei per minute
     string public latitude;                                         // e.g. 55.423791
