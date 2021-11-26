@@ -6,6 +6,10 @@ contract ChargersListing {
     mapping(uint64 => address) public chargers;
     uint64[] private chargersIndexes;
 
+    event NewCharger(
+        uint64 id,
+        address chargerAddress
+    );
 
     /**
      * Method returns parameters of a registered station
@@ -44,6 +48,8 @@ contract ChargersListing {
             msg.sender
         ));
         chargersIndexes.push(id);
+
+        emit NewCharger(id, chargers[id]);
     }
 
     function deleteCharger(uint64 id) external {
