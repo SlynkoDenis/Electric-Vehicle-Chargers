@@ -1,0 +1,50 @@
+[
+  {
+    "id": 0,
+    "name": "Mos Energo",
+    "picture": "images/Mosenerg.jpeg",
+    "location": "Moscow",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0x29ae902187FB1aDC589A24D64542624c973e84D7"
+  },
+  {
+    "id": 1,
+    "name": "Charge Point",
+    "picture": "images/ChargePoint.jpeg",
+    "location": "Paris",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0xfEA5DA1ACa6763486Fc01BD22a061EFb41730394"
+  },
+  {
+    "id": 2,
+    "name": "ABB",
+    "picture": "images/ABBIncharge.jpeg",
+    "location": "London",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0xED575CfC5B8D21956A35b7F36a81b668f7b618C7"
+  },
+  {
+    "id": 3,
+    "name": "Tesla",
+    "picture": "images/Tesla.jpeg",
+    "location": "Berlin",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0x83C7F35d80a9BDeeA04b09e6b5e15242f6Ad7610"
+  }
+]
