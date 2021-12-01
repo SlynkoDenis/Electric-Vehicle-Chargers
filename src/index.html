@@ -49,15 +49,15 @@
             
           
             <label for="appt1">Select the time to start your charging:</label>
-            <p><input type="datetime-local" step="300" id="appt1" name="Time1"></p>
+            <p><input class = 'calendar1' cal_id = '0' type="datetime-local" step="300" id="appt1" name="Time1"></p>
             <label for="appt2">Select the time to end your charging:</label>
-            <p><input type="datetime-local" step="300" id="appt2" name="Time2"></p>
+            <p><input class = 'calendar2' cal_id = '0' type="datetime-local" step="300" id="appt2" name="Time2"></p>
             <!-- <input type="button" onclick="yourJsFunction();" value="Submit"/> -->
             <button class="btn btn-default btn-charge" type="button" data-id="0" >Submit</button>
             
-            <p style="background-color:Tomato;" id="Res"></p>
-            <p style="background-color:Tomato;" id="ResultBad"></p>
-            <p style="background-color:green;" id="ResultGood"></p>
+            <p style="background-color:rgb(255, 255, 255);" id="Res"></p>
+            <p style="background-color:Tomato;" id="ResultBad" class = 'bad'></p>
+            <p style="background-color:green;" id="ResultGood" class = 'good'></p>
             
             
           </div>
