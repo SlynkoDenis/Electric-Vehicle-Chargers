@@ -4,7 +4,7 @@ import "./Charger.sol";
 
 contract ChargersListing {
     mapping(uint64 => address) public chargers;
-    uint64[4] private chargersIndexes;
+    uint64[] private chargersIndexes;
 
 
     /**
@@ -45,7 +45,7 @@ contract ChargersListing {
     function getAllChargersIndexes()
         external
         view
-        returns(uint64[4] memory)
+        returns(uint64[] memory)
     {
         return chargersIndexes;
     }
@@ -63,8 +63,8 @@ contract ChargersListing {
             oracleAddress,
             msg.sender
         ));
-        // chargersIndexes.push(id);
-        chargersIndexes[id] = id;
+        chargersIndexes.push(id);
+        // chargersIndexes[id] = id;
     }
 
     function deleteCharger(uint64 id) external {

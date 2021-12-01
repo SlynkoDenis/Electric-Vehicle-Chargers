@@ -90,7 +90,7 @@ contract Charger {
         payable
     {
         require(isWorking, "registerDeposit_isNotWorking");
-        require(calculateRequiredDeposit(_durationInFiveMinutes) < msg.value,
+        require(calculateRequiredDeposit(_durationInFiveMinutes) > msg.value,
                 "registerDeposit_notEnoughMoney");
 
         // firstly we update root index and time
