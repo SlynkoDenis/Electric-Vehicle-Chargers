@@ -20,7 +20,14 @@ npm install
 ### Compile and Migrate
 ```
 truffle compile
-truffle migrate 
+```
+for first launch or restart
+```
+truffle migrate --reset
+```
+for other launches
+```
+truffle migrate
 ```
 
 ### Deploy User Interface
