@@ -6,6 +6,8 @@ import "../contracts/ChargersListing.sol";
 import "../contracts/Charger.sol";
 
 contract TestChargersListing {
+    // Testing ChargersListing all functions.
+    // start from initialising new ChargersListing with preset normal parameters for first Charger.
 
     uint16 public power = 228;                                                    // in kW
     Charger.TypeOfCable cableType;
@@ -21,6 +23,8 @@ contract TestChargersListing {
     function testAddChargersListing()
                 public
         {
+        // Test adding new Charger to ChargersListing using getChargerInfo function and check all parameters.
+        // Test fails if init parameters aren't equal to current and status isWorking==false.
         meta.addCharger(0, power, cableType, tariff, latitude, longitude, oracleAddress);
         (uint16 _power, Charger.TypeOfCable _cableType, uint _tariff, string memory _latitude, string memory _longitude, bool _isWorking) = meta.getChargerInfo(0);
 

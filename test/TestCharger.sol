@@ -5,8 +5,9 @@ import "truffle/DeployedAddresses.sol";
 import "../contracts/Charger.sol";
 
 contract TestCharger {
-
-    uint16 public power = 228;                                                    // in kW
+    // Testing Charger all functions.
+    // start from initialising new Charger with preset normal parameters.
+    uint16 public power = 228;                                                   // in kW
     Charger.TypeOfCable cableType;
     uint public tariff = 42;                                                     // tariff is represented in wei per minute
     string public latitude = "55.423791";                                        // e.g. 55.423791
@@ -20,6 +21,8 @@ contract TestCharger {
     function testInitCharger()
             public
         {
+        // Test initialising Charger using getInfo function and check all parameters.
+        // Test fails if init parameters aren't equal to current and status isWorking==false.
         (uint16 _power, Charger.TypeOfCable _cableType, uint _tariff, string memory _latitude, string memory _longitude, bool _isWorking) = meta.getInfo();
 
         require(power == _power, "Charger has bad init power.");
@@ -34,6 +37,8 @@ contract TestCharger {
     function testCalculateRequiredDeposit()
             public
         {
+        // Test uses selector to check CalculateRequiredDeposit function.
+        // Test fails if target function raises error with normal input or doesn't raise with bad input value.
         bool r;
         (r, ) = address(this).call(abi.encodePacked(meta.calculateRequiredDeposit.selector));
         Assert.isFalse(r, "Calculate required deposit stopped with normal input values.");
