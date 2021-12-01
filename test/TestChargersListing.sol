@@ -9,9 +9,9 @@ contract TestChargersListing {
     // Testing ChargersListing all functions.
     // start from initialising new ChargersListing with preset normal parameters for first Charger.
 
-    uint16 public power = 228;                                                    // in kW
+    uint16 public power = 42;                                                    // in kW
     Charger.TypeOfCable cableType;
-    uint public tariff = 42;                                                     // tariff is represented in wei per minute
+    uint public tariff = 13;                                                     // tariff is represented in wei per minute
     string public latitude = "55.423791";                                        // e.g. 55.423791
     string public longitude = "37.518223";                                       // e.g. 37.518223
 
@@ -34,6 +34,21 @@ contract TestChargersListing {
         require(keccak256(abi.encodePacked((longitude))) == keccak256(abi.encodePacked((_longitude))), "Charger has bad init longitude.");
         require(cableType == _cableType, "Charger has bad init cableType.");
         require(_isWorking == true, "Charger has bad init isWorking.");
+    }
+
+    function testDeleteCharger()
+                public
+        {
+        // Test deleting Charger by id.
+        // Test fails if function doesn't delete Charger or can delete Charger with incorrect id.
+        bool r;
+        uint64 input = 666;
+        (r, ) = address(this).call(abi.encodePacked(meta.deleteCharger, input));
+        Assert.isFalse(r, "Delete Charger with incorrect id without errors.");
+        input = 0;
+        meta.deleteCharger(input);
+        (r, ) = address(this).call(abi.encodePacked(meta.getChargerInfo, input));
+        Assert.isFalse(r, "Didn't delete Charger.");
     }
 
 }
