@@ -109,6 +109,7 @@ App = {
 
     bindEvents: function() {
         $(document).on('click', '.btn-charge', App.handleCharging);
+        $(document).on('click', '.btn-cancel', App.cancelCharging);
     },
 
     markCharging: async function() {
@@ -127,7 +128,7 @@ App = {
         });
     },
 
-    handleCharging: function(event) {
+    handleCharging: async function(event) {
         event.preventDefault();
         var chargeId = parseInt($(event.target).data('id'));
         document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
@@ -147,22 +148,59 @@ App = {
                 return false;
             }
         } else {
-            document.getElementsByClassName('bad').item(chargeId).innerHTML = "Invalid time was provided";
+            document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made no begin or end time";
             return false;
         }
-        // var chargeId = parseInt($(event.target).data('id'));
 
-        // TODO: add validation of App.userAddress (at least that it was specified)
-        App.contracts.ChargersListing.deployed().then(function(chargingInstance) {
-            return chargingInstance.getChargerRegisterDeposit(chargeId, beginMinutes, diffMinutes, 0, { from: App.userAddress });
-        }).then(function(result) {
-            console.log('depositOK')
-            document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
-            document.getElementsByClassName("good").item(chargeId).innerHTML = "Successfully Registered";
-            return App.markCharging();
+        console.log('Charge index ', chargeId);
+        // get address of the 0-indexed Charger
+        var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
+            return instance.chargers(chargeId, { from: App.userAddress }).then(function(retAddress) {
+                return retAddress;
+            });
         }).catch(function(err) {
             console.log(err.message);
         });
+        console.log('Target Charger address:', targetAddress);
+
+        $.getJSON('../Charger.json', function(chargerAbi) {
+            var chargerContract = new web3.eth.Contract(chargerAbi.abi, targetAddress);
+            console.log(chargerContract);
+            chargerContract.methods.registerDeposit(beginMinutes, diffMinutes, 0).call({ from: App.userAddress });
+        });
+    },
+
+    cancelCharging: async function(event) {
+        event.preventDefault();
+        var chargeId = parseInt($(event.target).data('id'));
+        document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
+        document.getElementsByClassName("good").item(chargeId).innerHTML = "";
+        var beginTime = document.getElementsByClassName('calendar3').item(chargeId).value;
+        console.log(chargeId);
+        console.log(beginTime);
+
+        if (beginTime) {
+            var beginMinutes = (Date.parse(beginTime)) / 1000 / 300;
+
+            // get address of the 0-indexed Charger
+            var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
+                return instance.chargers(chargeId, { from: App.userAddress }).then(function(retAddress) {
+                    return retAddress;
+                });
+            }).catch(function(err) {
+                console.log(err.message);
+            });
+            console.log('Target Charger address:', targetAddress);
+
+            $.getJSON('../Charger.json', function(chargerAbi) {
+                var chargerContract = new web3.eth.Contract(chargerAbi.abi, targetAddress);
+                chargerContract.methods.cancelOrder(beginMinutes, 0).call({ from: App.userAddress });
+            });
+        } else {
+            document.getElementsByClassName('bad').item(chargeId).innerHTML = "No begin time";
+            console.log("No begin time");
+        }
+
     }
 };
 
