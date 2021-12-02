@@ -13,14 +13,11 @@
 
 ### Initialize the project
 ``` 
-npm install
+npm run prebuild
 ```
 
 
 ### Compile and Migrate
-```
-truffle compile
-```
 for first launch or restart
 ```
 truffle migrate --reset
