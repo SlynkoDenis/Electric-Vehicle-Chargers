@@ -1,0 +1,7 @@
+**/node_modules
+build
+src/js/truffle-contract.js
+src/js/truffle-contract.js.map
+src/js/web3.min.js
+src/js/web3.min.js.map
+src/Charger.json
