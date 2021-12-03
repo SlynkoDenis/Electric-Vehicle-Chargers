@@ -65,7 +65,7 @@ contract ChargersListing {
     function addCharger(uint64 id, uint16 _power, Charger.TypeOfCable _cableType, uint _tariff,
                         string calldata _latitude, string calldata _longitude,
                         address oracleAddress) external {
-        // require(chargers[id] != address(0), "addCharger_chargerAlreadyExists");
+        require(chargers[id] == address(0), "addCharger_chargerAlreadyExists");
         chargers[id] = address(new Charger(
             _power,
             _cableType,

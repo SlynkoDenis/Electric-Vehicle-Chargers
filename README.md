@@ -26,6 +26,10 @@ for other launches
 ```
 truffle migrate
 ```
+for uploading pre-defined Chargers (after migration):
+```
+truffle exec query.js
+```
 
 ### Deploy User Interface
 ```
