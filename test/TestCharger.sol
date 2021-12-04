@@ -1,15 +1,15 @@
 pragma solidity ^0.5.8;
 
-import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/Charger.sol";
 
 contract TestCharger {
     // Testing Charger all functions.
     // start from initialising new Charger with preset normal parameters.
-    uint16 public power = 228;                                                   // in kW
+
+    uint16 public power = 42;                                                   // in kW
     Charger.TypeOfCable cableType;
-    uint public tariff = 42;                                                     // tariff is represented in wei per minute
+    uint public tariff = 13;                                                     // tariff is represented in wei per minute
     string public latitude = "55.423791";                                        // e.g. 55.423791
     string public longitude = "37.518223";                                       // e.g. 37.518223
 
@@ -32,16 +32,46 @@ contract TestCharger {
         require(cableType == _cableType, "Charger has bad init cableType.");
         require(_isWorking == true, "Charger has bad init isWorking.");
     }
-    //TODO tests for Charger.registerDeposit, closeOrder, cancelOrder
 
     function testCalculateRequiredDeposit()
             public
         {
-        // Test uses selector to check CalculateRequiredDeposit function.
-        // Test fails if target function raises error with normal input or doesn't raise with bad input value.
+        // Test uses abi to check CalculateRequiredDeposit function.
+        // Test fails if target function has incorrect calculating with normal input or doesn't raise error with bad input value.
         bool r;
-        (r, ) = address(this).call(abi.encodePacked(meta.calculateRequiredDeposit.selector));
-        Assert.isFalse(r, "Calculate required deposit stopped with normal input values.");
+        uint16 input = 0;
+        (r, ) = address(this).call(abi.encodePacked(meta.calculateRequiredDeposit, input));
+        // can use assert how alternative Assert.isFalse(r, "Calculate required deposit didn't stop with bad input values.");
+        require(r==false, "Calculate required deposit didn't stop with bad input values.");
+        input = 5;
+        uint256 output = meta.calculateRequiredDeposit(input);
+        require(output == input * 5 * tariff + block.gaslimit, "Calculate incorrect Required Deposit.");
+    }
+
+    function testSetIsWorking()
+                public
+        {
+        // Test checks setIsWorking function.
+        bool r;
+        (r, ) = address(this).call(abi.encodePacked(meta.setIsWorking, false));
+        require(r==false, "Charger can unauthorized set IsWorking to false.");
+    }
+
+    function testRegisterDeposit()
+                public
+        {
+        // Test checks registerDeposit function.
+        // Test fails if one of the input data is incorrect.
+        bool r;
+        uint startTime = block.timestamp / 300 + 100;
+        uint16 durationInFiveMinutes = 0;
+        uint64 secretSessionId = 1;
+        (r, ) = address(this).call(abi.encodePacked(meta.registerDeposit, startTime, durationInFiveMinutes, secretSessionId));
+        require(r==false, "Register Deposit with zero duration.");
+        durationInFiveMinutes = 1;
+        startTime = 0;
+        (r, ) = address(this).call(abi.encodePacked(meta.registerDeposit, startTime, durationInFiveMinutes, secretSessionId));
+        require(r==false, "Register Deposit with bad startTime.");
     }
 
 }
