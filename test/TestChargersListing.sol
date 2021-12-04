@@ -1,6 +1,5 @@
 pragma solidity ^0.5.8;
 
-import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/ChargersListing.sol";
 import "../contracts/Charger.sol";
@@ -44,11 +43,11 @@ contract TestChargersListing {
         bool r;
         uint64 input = 666;
         (r, ) = address(this).call(abi.encodePacked(meta.deleteCharger, input));
-        Assert.isFalse(r, "Delete Charger with incorrect id without errors.");
+        require(r==false, "Delete Charger with incorrect id without errors.");
         input = 0;
         meta.deleteCharger(input);
         (r, ) = address(this).call(abi.encodePacked(meta.getChargerInfo, input));
-        Assert.isFalse(r, "Didn't delete Charger.");
+        require(r==false, "Didn't delete Charger.");
     }
 
 }

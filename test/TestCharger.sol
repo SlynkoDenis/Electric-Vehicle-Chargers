@@ -1,6 +1,5 @@
 pragma solidity ^0.5.8;
 
-import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/Charger.sol";
 
@@ -42,7 +41,8 @@ contract TestCharger {
         bool r;
         uint16 input = 0;
         (r, ) = address(this).call(abi.encodePacked(meta.calculateRequiredDeposit, input));
-        Assert.isFalse(r, "Calculate required deposit didn't stop with bad input values.");
+        // can use assert how alternative Assert.isFalse(r, "Calculate required deposit didn't stop with bad input values.");
+        require(r==false, "Calculate required deposit didn't stop with bad input values.");
         input = 5;
         uint256 output = meta.calculateRequiredDeposit(input);
         require(output == input * 5 * tariff + block.gaslimit, "Calculate incorrect Required Deposit.");
@@ -54,7 +54,7 @@ contract TestCharger {
         // Test checks setIsWorking function.
         bool r;
         (r, ) = address(this).call(abi.encodePacked(meta.setIsWorking, false));
-        Assert.isFalse(r, "Charger can unauthorized set IsWorking to false.");
+        require(r==false, "Charger can unauthorized set IsWorking to false.");
     }
 
     function testRegisterDeposit()
@@ -67,11 +67,11 @@ contract TestCharger {
         uint16 durationInFiveMinutes = 0;
         uint64 secretSessionId = 1;
         (r, ) = address(this).call(abi.encodePacked(meta.registerDeposit, startTime, durationInFiveMinutes, secretSessionId));
-        Assert.isFalse(r, "Register Deposit with zero duration.");
+        require(r==false, "Register Deposit with zero duration.");
         durationInFiveMinutes = 1;
         startTime = 0;
         (r, ) = address(this).call(abi.encodePacked(meta.registerDeposit, startTime, durationInFiveMinutes, secretSessionId));
-        Assert.isFalse(r, "Register Deposit with bad startTime.");
+        require(r==false, "Register Deposit with bad startTime.");
     }
 
 }
