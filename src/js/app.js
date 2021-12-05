@@ -1,6 +1,8 @@
 App = {
     web3Provider: null,
     contracts: {},
+    chargersAddresses: {},
+    userAddress: '',
 
     init: async function() {
         $.getJSON('../chargers.json', function(data) {
@@ -32,12 +34,11 @@ App = {
             App.web3Provider = window.ethereum;
             try {
                 // Request account access
-                // NB! initialization `await window.ethereum.enable();` is deprecated
                 const accounts = await App.web3Provider.request({ method: 'eth_requestAccounts' });
-                setAccounts(accounts);
+                App.userAddress = accounts[0];
+                console.log('User addess:', App.userAddress);
             } catch (error) {
-                // User denied account access...
-                console.error("User denied account access")
+                console.error('User denied account access:', error.message);
             }
         } else if (window.web3) {
             App.web3Provider = window.web3.currentProvider;
@@ -48,53 +49,61 @@ App = {
         // TODO(slynkodenis): remove log before presentation; added only for self-check, version must be 1.6.1
         console.log('Web3 version:', web3.version);
 
-        return App.initContract();
+        return await App.initContract();
     },
 
-    initContract: function() {
-        $.getJSON('ChargersListing.json', function(data) {
-            var ChargersListArtifact = data;
+    initContract: async function() {
+        await $.getJSON('ChargersListing.json', function(ChargersListArtifact) {
             App.contracts.ChargersListing = TruffleContract(ChargersListArtifact);
-            App.contracts.ChargersListing.setProvider(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
-            web3.eth.getAccounts(function(error, accounts) {
-                if (error) {
-                    console.log(error);
-                }
-                var account = accounts[0];
-
-                App.contracts.ChargersListing.deployed().then(function(instance) {
-                    instance.getAllChargers().then(function(chargers) {
-                        for (let i = 0; i < chargers.length; i++) {
-                            if (chargers[i] == '0x0000000000000000000000000000000000000000') {
-                                $.getJSON('../chargers.json', function(data) {
-                                    console.log(data[i]);
-                                    instance.addCharger(
-                                        data[i].id,
-                                        data[i].power,
-                                        data[i].cableType,
-                                        data[i].tariff,
-                                        data[i].latitude,
-                                        data[i].longitude,
-                                        data[i].oracleAddress, { from: account }
-                                    ).catch(function(error) {
-                                        console.log('Failed to add a Charger with index', data[i].id);
-                                        console.log(error.message);
-                                    });
-                                });
-                            }
-                        }
-                    }).catch(function(error) {
-                        console.log('Failed to get addresses of chargers');
-                        console.log(error.message);
-                    });
-                }).catch(function(error) {
-                    console.log('Failed to get deployed ChargersListing');
-                    console.log(error.message);
-                });
-            });
-            return App.markCharging();
+            App.contracts.ChargersListing.setProvider(App.web3Provider);
         });
 
+        if (App.userAddress.length == 0) {
+            App.userAddress = await web3.eth.getAccounts().then(function(accounts) {
+                return accounts[0];
+            }).catch(function(error) {
+                console.log('Failed on call to getAccounts()');
+                console.log(error.message);
+                throw new Error(error.message);
+            });
+            console.log('User addess:', App.userAddress);
+        }
+
+        var listingInstance = await App.contracts.ChargersListing.deployed().then(function(instance) {
+            return instance;
+        }).catch(function(error) {
+            console.log('Failed to get deployed ChargersListing');
+            console.log(error.message);
+            throw new Error(error.message);
+        });
+        App.chargersAddresses = await listingInstance.getAllChargers().then(function(chargers) {
+            for (let i = 0; i < chargers.length; i++) {
+                if (chargers[i] == '0x0000000000000000000000000000000000000000') {
+                    console.log('Please use Chargers upload before the first app run');
+                    $.getJSON('../chargers.json', function(data) {
+                        console.log(data[i]);
+                        listingInstance.addCharger(
+                            data[i].id,
+                            data[i].power,
+                            data[i].cableType,
+                            data[i].tariff,
+                            data[i].latitude,
+                            data[i].longitude,
+                            data[i].oracleAddress, { from: App.userAddress }
+                        ).catch(function(error) {
+                            console.log('Failed to add a Charger with index', data[i].id);
+                            console.log(error.message);
+                        });
+                    });
+                }
+            }
+            return chargers;
+        }).catch(function(error) {
+            console.log('Failed to get addresses of chargers');
+            console.log(error.message);
+        });
+
+        App.markCharging();
         return App.bindEvents();
     },
 
@@ -102,38 +111,9 @@ App = {
         $(document).on('click', '.btn-charge', App.handleCharging);
     },
 
-    callGetInfoDirectly: async function() {
-        // TODO(slynkodenis): maybe add userAccount as field of App
-        var userAccount = await web3.eth.getAccounts().then(function(accounts) {
-            return accounts[0];
-        }).catch(function(error) {
-            console.log(error.message);
-        });
-        console.log('User address:', userAccount);
-
-        // get address of the 0-indexed Charger
-        var targetIndex = 0;
-        var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
-            return instance.chargers(targetIndex, { from: userAccount }).then(function(retAddress) {
-                return retAddress;
-            });
-        }).catch(function(err) {
-            console.log(err.message);
-        });
-        console.log('Target Charger address:', targetAddress);
-
-        $.getJSON('../Charger.json', function(chargerAbi) {
-            var chargerContract = new web3.eth.Contract(chargerAbi.abi, targetAddress);
-            chargerContract.methods.getInfo().call({ from: userAccount }).then(function(info) {
-                console.log(info);
-            }).catch(function(error) {
-                console.log(error.message);
-            });
-        });
-    },
-
     markCharging: async function() {
         var chargingInstance = await App.contracts.ChargersListing.deployed();
+        // TODO(slynkodenis): utilize App.chargersAddresses
         var chargersAddresses = await chargingInstance.getAllChargers().then(function(addresses) {
             return addresses;
         }).catch(function(error) {
@@ -151,44 +131,37 @@ App = {
         event.preventDefault();
         var chargeId = parseInt($(event.target).data('id'));
         document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
-        document.getElementsByClassName("good").item(chargeId).innerHTML = "";
+        document.getElementsByClassName('good').item(chargeId).innerHTML = "";
         var beginTime = document.getElementsByClassName('calendar1').item(chargeId).value;
-        console.log(chargeId);
+        console.log('User chose Charger with id', chargeId);
 
-        console.log(beginTime);
+        console.log('Begin time:', beginTime);
         var endTime = document.getElementsByClassName('calendar2').item(chargeId).value;
-        console.log(endTime);
+        console.log('End time:', endTime);
 
         var beginMinutes = (Date.parse(beginTime)) / 1000 / 300;
         var diffMinutes = (Date.parse(endTime) - Date.parse(beginTime)) / 1000 / 300;
         if (beginTime && endTime) {
             if (diffMinutes <= 0) {
-                document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made begin time more then end time";
+                document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made: begin time is greater than end time";
                 return false;
             }
         } else {
-            document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made begin time more then end time";
+            document.getElementsByClassName('bad').item(chargeId).innerHTML = "Invalid time was provided";
             return false;
         }
         // var chargeId = parseInt($(event.target).data('id'));
-        var chargingInstance;
-        web3.eth.getAccounts(function(error, accounts) {
-            if (error) {
-                console.log(error);
-            }
-            var account = accounts[0];
-            console.log(accounts[0]);
-            App.contracts.ChargersListing.deployed().then(function(instance) {
-                chargingInstance = instance;
-                return chargingInstance.getChargerRegisterDeposit(chargeId, beginMinutes, diffMinutes, 0, { from: account });
-            }).then(function(result) {
-                console.log('depositOK')
-                document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
-                document.getElementsByClassName("good").item(chargeId).innerHTML = "Successfully Registered";
-                return App.markCharging();
-            }).catch(function(err) {
-                console.log(err.message);
-            });
+
+        // TODO: add validation of App.userAddress (at least that it was specified)
+        App.contracts.ChargersListing.deployed().then(function(chargingInstance) {
+            return chargingInstance.getChargerRegisterDeposit(chargeId, beginMinutes, diffMinutes, 0, { from: App.userAddress });
+        }).then(function(result) {
+            console.log('depositOK')
+            document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
+            document.getElementsByClassName("good").item(chargeId).innerHTML = "Successfully Registered";
+            return App.markCharging();
+        }).catch(function(err) {
+            console.log(err.message);
         });
     }
 };
