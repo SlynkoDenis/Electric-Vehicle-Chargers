@@ -108,8 +108,37 @@ App = {
             App.chargerAbi = chargerJson.abi;
         });
 
+        App.listenForEvents();
         App.markCharging();
         return App.bindEvents();
+    },
+
+    listenForEvents: async function() {
+        var targetIndex = 0;
+        var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
+            return instance.chargers(targetIndex, { from: App.userAddress }).then(function(retAddress) {
+                return retAddress;
+            });
+        }).catch(function(err) {
+            console.log(err.message);
+        });
+        var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
+        chargerContract.events.DepositWasRegistered({ fromBlock: 5 },
+            function(error, event) {
+                if (error) {
+                    console.log(error);
+                }
+                console.log(event.returnValues);
+            }
+        );
+        chargerContract.events.DepositWasClosed({ fromBlock: 5 },
+            function(error, event) {
+                if (error) {
+                    console.log(error);
+                }
+                console.log(event.returnValues);
+            }
+        );
     },
 
     bindEvents: function() {
@@ -168,12 +197,32 @@ App = {
         });
         console.log('Target Charger address:', targetAddress);
 
+        // get target charger instance
         var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
+
+        var hash = parseInt(
+            sjcl.codec.hex.fromBits(
+                sjcl.hash.sha1.hash(App.userAddress + beginMinutes.toString() + diffMinutes.toString())
+            ).split(0, 32),
+            10
+        );
+        var price = await chargerContract.methods
+            .calculateRequiredDeposit(diffMinutes)
+            .call({ from: App.userAddress })
+            .then(function(info) {
+                return info;
+            }).catch(function(error) {
+                console.log(error.message);
+            });
+        console.log(price);
         chargerContract.methods
-            .registerDeposit(beginMinutes, diffMinutes, 0)
-            .send({ from: App.userAddress })
+            .registerDeposit(beginMinutes, diffMinutes, hash)
+            .send({
+                from: App.userAddress,
+                value: price
+            })
             .on('error', function(error, receipt) {
-                console.log('Error occured:', error);
+                console.log('Error occured in register method:', error);
                 console.log(receipt);
             });
     },
@@ -190,7 +239,6 @@ App = {
         if (beginTime) {
             var beginMinutes = (Date.parse(beginTime)) / 1000 / 300;
 
-            // get address of the 0-indexed Charger
             var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
                 return instance.chargers(chargeId, { from: App.userAddress }).then(function(retAddress) {
                     return retAddress;
@@ -200,12 +248,18 @@ App = {
             });
             console.log('Target Charger address:', targetAddress);
 
+            var hash = parseInt(
+                sjcl.codec.hex.fromBits(
+                    sjcl.hash.sha1.hash(App.userAddress + beginMinutes.toString())
+                ).split(0, 32),
+                10
+            );
             var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
-            chargerContract.methods.
-            cancelOrder(beginMinutes, 0)
+            chargerContract.methods
+                .cancelOrder(beginMinutes, 0, hash)
                 .send({ from: App.userAddress })
                 .on('error', function(error, receipt) {
-                    console.log('Error occured:', error);
+                    console.log('Error occured in cancel method:', error);
                     console.log(receipt);
                 });
         } else {

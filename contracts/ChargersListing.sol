@@ -6,6 +6,10 @@ contract ChargersListing {
     mapping(uint64 => address) public chargers;
     uint64[] private chargersIndexes;
 
+    event NewCharger(
+        uint64 id,
+        address chargerAddress
+    );
 
     /**
      * Method returns parameters of a registered station
@@ -20,26 +24,6 @@ contract ChargersListing {
         require(chargers[id] != address(0), "getCharger_isNotRegistered");
         Charger targetCharger = Charger(chargers[id]);
         return targetCharger.getInfo();
-    }
-
-    function getCharger(uint64 id)
-        external
-        view
-        returns(Charger)
-    {
-        require(chargers[id] != address(0), "getCharger_isNotRegistered");
-        Charger targetCharger = Charger(chargers[id]);
-        return targetCharger;
-    }
-
-    function getChargerRegisterDeposit(uint64 id,uint _startTime,
-                             uint16 _durationInFiveMinutes,
-                             uint64 _secretSessionId)
-        external
-    {
-        require(chargers[id] != address(0), "getCharger_isNotRegistered");
-        Charger targetCharger = Charger(chargers[id]);
-        return targetCharger.registerDeposit(_startTime, _durationInFiveMinutes, _secretSessionId);
     }
 
     function getAllChargersIndexes()
@@ -76,7 +60,8 @@ contract ChargersListing {
             msg.sender
         ));
         chargersIndexes.push(id);
-        // chargersIndexes[id] = id;
+
+        emit NewCharger(id, chargers[id]);
     }
 
     function deleteCharger(uint64 id) external {
