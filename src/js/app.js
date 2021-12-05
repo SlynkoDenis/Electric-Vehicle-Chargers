@@ -3,6 +3,7 @@ App = {
     contracts: {},
     chargersAddresses: {},
     userAddress: '',
+    chargerAbi: null,
 
     init: async function() {
         $.getJSON('../chargers.json', function(data) {
@@ -103,6 +104,10 @@ App = {
             console.log(error.message);
         });
 
+        await $.getJSON('../Charger.json', function(chargerJson) {
+            App.chargerAbi = chargerJson.abi;
+        });
+
         App.markCharging();
         return App.bindEvents();
     },
@@ -163,11 +168,14 @@ App = {
         });
         console.log('Target Charger address:', targetAddress);
 
-        $.getJSON('../Charger.json', function(chargerAbi) {
-            var chargerContract = new web3.eth.Contract(chargerAbi.abi, targetAddress);
-            console.log(chargerContract);
-            chargerContract.methods.registerDeposit(beginMinutes, diffMinutes, 0).call({ from: App.userAddress });
-        });
+        var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
+        chargerContract.methods
+            .registerDeposit(beginMinutes, diffMinutes, 0)
+            .send({ from: App.userAddress })
+            .on('error', function(error, receipt) {
+                console.log('Error occured:', error);
+                console.log(receipt);
+            });
     },
 
     cancelCharging: async function(event) {
@@ -192,10 +200,14 @@ App = {
             });
             console.log('Target Charger address:', targetAddress);
 
-            $.getJSON('../Charger.json', function(chargerAbi) {
-                var chargerContract = new web3.eth.Contract(chargerAbi.abi, targetAddress);
-                chargerContract.methods.cancelOrder(beginMinutes, 0).call({ from: App.userAddress });
-            });
+            var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
+            chargerContract.methods.
+            cancelOrder(beginMinutes, 0)
+                .send({ from: App.userAddress })
+                .on('error', function(error, receipt) {
+                    console.log('Error occured:', error);
+                    console.log(receipt);
+                });
         } else {
             document.getElementsByClassName('bad').item(chargeId).innerHTML = "No begin time";
             console.log("No begin time");
