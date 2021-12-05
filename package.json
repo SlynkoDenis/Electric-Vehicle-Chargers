@@ -1,5 +1,5 @@
 {
-    "name": "charger",
+    "name": "electric-vehicle-chargers",
     "version": "1.0.0",
     "description": "",
     "main": "truffle.js",
@@ -13,11 +13,12 @@
     },
     "scripts": {
         "dev": "lite-server",
+        "test": "truffle test",
         "prebuild": "./prebuild_contracts.sh",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "lint": "solhint ./contracts/*.sol"
     },
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "devDependencies": {
         "lite-server": "^2.3.0"
     },
@@ -25,7 +26,15 @@
         "-": "0.0.1",
         "extra": "^0.2.1",
         "fs": "0.0.1-security",
+        "sjcl": "^1.0.8",
         "truffle": "^5.4.22",
-        "web3": "^1.6.1"
+        "web3": "^1.6.1",
+        "solc": "^0.8.10",
+        "solhint": "3.3.6"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run lint"
+        }
     }
 }

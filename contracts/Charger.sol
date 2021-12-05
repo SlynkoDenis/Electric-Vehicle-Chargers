@@ -37,7 +37,7 @@ contract Charger {
         bool isWorking
     );
 
-    uint16 public power;
+    uint16 public power;                                            // in kW
     TypeOfCable public cableType;
     uint public tariff;                                             // tariff is represented in wei per minute
     string public latitude;                                         // e.g. 55.423791
@@ -90,7 +90,7 @@ contract Charger {
         payable
     {
         require(isWorking, "registerDeposit_isNotWorking");
-        require(calculateRequiredDeposit(_durationInFiveMinutes) > msg.value,
+        require(calculateRequiredDeposit(_durationInFiveMinutes) < msg.value,
                 "registerDeposit_notEnoughMoney");
 
         // firstly we update root index and time
@@ -204,7 +204,9 @@ contract Charger {
      * @param _startTime            start time of the order to close
      * @param _timeInMinutes        time spend by user, measured by Oracle
      */
-    function closeOrder(uint _startTime, uint16 _timeInMinutes)
+    function closeOrder(uint _startTime,
+                        uint16 _timeInMinutes,
+                        uint64 _secretSessionId)
         external
         payable
     {
@@ -248,7 +250,7 @@ contract Charger {
 
         // refund in the end to prevent from race conditions
         depositsList[index].user.transfer(refund);
-        emit DepositWasClosed(_startTime, _timeInMinutes, 0);
+        emit DepositWasClosed(_startTime, _timeInMinutes, _secretSessionId);
     }
 
     function setIsWorking(bool _value) external {

@@ -1,6 +1,19 @@
-# Rent charger ( Ethereum DApp )
+# Electric Vehicle Chargers
 
- Chargers' rent web application ( DApp) on Ethereum Blockchain Network
+Chargers' rent web application (DApp) on Ethereum Blockchain Network
+
+### Architecture
+
+```
+-------------> Deposit -------------> Return (deposit-payment) money
+                  |        Charge
+     Don't charge |
+     (cancel or   |
+      timeout)    |
+                  |
+                  v
+    Return (deposit-penalty) money
+```
 
 ### Prerequisites
 - NodeJS (https://nodejs.org/en/)
@@ -35,4 +48,3 @@ truffle exec query.js
 ```
 npm run dev
 ```
-
