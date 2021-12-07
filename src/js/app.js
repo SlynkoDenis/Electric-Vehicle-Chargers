@@ -21,8 +21,11 @@ App = {
                 chargerTemplate.find('.charge-longitude').text(data[i].longitude);
                 chargerTemplate.find('.charge-oracleAddress').text(data[i].oracleAddress)
                 chargerTemplate.find('.btn-charge').attr('data-id', data[i].id);
+                chargerTemplate.find('.btn-cancel').attr('data-id', data[i].id);
+
                 chargerTemplate.find('calendar1').attr('name', data[i].id);
                 chargerTemplate.find('calendar2').attr('name', data[i].id);
+                chargerTemplate.find('calendar3').attr('name', data[i].id);
 
                 chargersRow.append(chargerTemplate.html());
             }
@@ -256,7 +259,7 @@ App = {
             );
             var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
             chargerContract.methods
-                .cancelOrder(beginMinutes, 0, hash)
+                .cancelOrder(beginMinutes, 0)
                 .send({ from: App.userAddress })
                 .on('error', function(error, receipt) {
                     console.log('Error occured in cancel method:', error);
