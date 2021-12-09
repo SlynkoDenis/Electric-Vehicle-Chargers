@@ -111,13 +111,12 @@ App = {
             App.chargerAbi = chargerJson.abi;
         });
 
-        App.listenForEvents();
+        App.listenForEvents(0);
         App.markCharging();
         return App.bindEvents();
     },
 
-    listenForEvents: async function() {
-        var targetIndex = 0;
+    listenForEvents: async function(targetIndex) {
         var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
             return instance.chargers(targetIndex, { from: App.userAddress }).then(function(retAddress) {
                 return retAddress;
@@ -126,7 +125,7 @@ App = {
             console.log(err.message);
         });
         var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
-        chargerContract.events.DepositWasRegistered({ fromBlock: 5 },
+        chargerContract.events.DepositWasRegistered({ fromBlock: 'latest' },
             function(error, event) {
                 if (error) {
                     console.log(error);
@@ -134,7 +133,7 @@ App = {
                 console.log(event.returnValues);
             }
         );
-        chargerContract.events.DepositWasClosed({ fromBlock: 5 },
+        chargerContract.events.DepositWasClosed({ fromBlock: 'latest' },
             function(error, event) {
                 if (error) {
                     console.log(error);
@@ -170,27 +169,23 @@ App = {
         var chargeId = parseInt($(event.target).data('id'));
         document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
         document.getElementsByClassName('good').item(chargeId).innerHTML = "";
-        var beginTime = document.getElementsByClassName('calendar1').item(chargeId).value;
         console.log('User chose Charger with id', chargeId);
 
-        console.log('Begin time:', beginTime);
+        var beginTime = document.getElementsByClassName('calendar1').item(chargeId).value;
         var endTime = document.getElementsByClassName('calendar2').item(chargeId).value;
-        console.log('End time:', endTime);
 
-        var beginMinutes = (Date.parse(beginTime)) / 1000 / 300;
-        var diffMinutes = (Date.parse(endTime) - Date.parse(beginTime)) / 1000 / 300;
+        var beginMinutes = Math.floor((Date.parse(beginTime)) / 1000 / 300);
+        var diffMinutes = Math.floor((Date.parse(endTime) - Date.parse(beginTime)) / 1000 / 300);
         if (beginTime && endTime) {
             if (diffMinutes <= 0) {
                 document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made: begin time is greater than end time";
                 return false;
             }
         } else {
-            document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made no begin or end time";
+            document.getElementsByClassName('bad').item(chargeId).innerHTML = "Contract wasn't made: no begin or end time";
             return false;
         }
 
-        console.log('Charge index ', chargeId);
-        // get address of the 0-indexed Charger
         var targetAddress = await App.contracts.ChargersListing.deployed().then(function(instance) {
             return instance.chargers(chargeId, { from: App.userAddress }).then(function(retAddress) {
                 return retAddress;
@@ -200,15 +195,18 @@ App = {
         });
         console.log('Target Charger address:', targetAddress);
 
-        // get target charger instance
-        var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
-
         var hash = parseInt(
             sjcl.codec.hex.fromBits(
                 sjcl.hash.sha1.hash(App.userAddress + beginMinutes.toString() + diffMinutes.toString())
-            ).split(0, 32),
-            10
+            ).slice(0, 8),
+            16
         );
+        console.log(beginMinutes);
+        console.log(diffMinutes);
+        console.log(hash);
+
+        // get target charger instance
+        var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
         var price = await chargerContract.methods
             .calculateRequiredDeposit(diffMinutes)
             .call({ from: App.userAddress })
@@ -217,7 +215,6 @@ App = {
             }).catch(function(error) {
                 console.log(error.message);
             });
-        console.log(price);
         chargerContract.methods
             .registerDeposit(beginMinutes, diffMinutes, hash)
             .send({
@@ -234,7 +231,7 @@ App = {
         event.preventDefault();
         var chargeId = parseInt($(event.target).data('id'));
         document.getElementsByClassName('bad').item(chargeId).innerHTML = "";
-        document.getElementsByClassName("good").item(chargeId).innerHTML = "";
+        document.getElementsByClassName('good').item(chargeId).innerHTML = "";
         var beginTime = document.getElementsByClassName('calendar3').item(chargeId).value;
         console.log(chargeId);
         console.log(beginTime);
@@ -254,12 +251,12 @@ App = {
             var hash = parseInt(
                 sjcl.codec.hex.fromBits(
                     sjcl.hash.sha1.hash(App.userAddress + beginMinutes.toString())
-                ).split(0, 32),
-                10
+                ).slice(0, 8),
+                16
             );
             var chargerContract = new web3.eth.Contract(App.chargerAbi, targetAddress);
             chargerContract.methods
-                .cancelOrder(beginMinutes, 0)
+                .cancelOrder(beginMinutes, hash)
                 .send({ from: App.userAddress })
                 .on('error', function(error, receipt) {
                     console.log('Error occured in cancel method:', error);
@@ -269,7 +266,6 @@ App = {
             document.getElementsByClassName('bad').item(chargeId).innerHTML = "No begin time";
             console.log("No begin time");
         }
-
     }
 };
 

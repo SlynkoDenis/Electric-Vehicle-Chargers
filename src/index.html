@@ -47,15 +47,12 @@
                     <strong>Tariff</strong>: <span class="charge-tariff"></span><br/>
                     <strong>Coordinates</strong>: <span class="charge-latitude"></span><span> </span><span class="charge-longitude"></span><br/>
                     <strong>Location</strong>: <span class="charge-location"></span><br/>
-                    <!-- <strong>Location</strong>: <span class="charge-location"></span><br/><br/> -->
-
 
                     <label for="appt1">Select the time to start your charging:</label>
                     <p><input class='calendar1' cal_id='0' type="datetime-local" step="300" id="appt1" name="Time1"></p>
                     <label for="appt2">Select the time to end your charging:</label>
                     <p><input class='calendar2' cal_id='0' type="datetime-local" step="300" id="appt2" name="Time2"></p>
-                    <!-- <input type="button" onclick="yourJsFunction();" value="Submit"/> -->
-                    <button class="btn btn-default btn-charge" type="button" data-id="0">Submit</button><br><br>
+                    <button class="btn btn-default btn-charge" type="register" data-id="0">Submit</button><br><br>
 
                     <label for="appt3">Select beginning time to cancel charging order:</label>
                     <p><input class='calendar3' cal_id='0' type="datetime-local" step="300" id="appt3" name="Time3"></p>
@@ -71,9 +68,7 @@
         </div>
     </div>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>

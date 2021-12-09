@@ -231,6 +231,7 @@ contract Charger {
 
         // delete order from internal structures
         freeIndexes.push(index);
+        address payable userAddress = depositsList[index].user;
         delete depositsList[index];
         index = depositsIndexes[_startTime].reservationsStart;
         uint16 endIndex = depositsIndexes[_startTime].reservationsEnd;
@@ -249,7 +250,7 @@ contract Charger {
         delete depositsIndexes[_startTime];
 
         // refund in the end to prevent from race conditions
-        depositsList[index].user.transfer(refund);
+        userAddress.transfer(refund);
         emit DepositWasClosed(_startTime, _timeInMinutes, _secretSessionId);
     }
 
