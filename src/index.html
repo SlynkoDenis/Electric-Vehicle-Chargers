@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Charge stations rent</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-sm-push-2">
+                <h1 class="text-center">Charge stations</h1>
+                <hr/>
+                <br/>
+            </div>
+        </div>
+
+        <div id="chargersRow" class="row">
+            <!-- CHARGERS LOAD HERE -->
+        </div>
+    </div>
+
+    <div id="chargerTemplate" style="display: none;">
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="panel panel-default panel-chargers">
+                <div class="panel-heading">
+                    <h3 class="panel-title"></h3>
+                </div>
+                <div class="panel-body">
+                    <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center" style="width: 100%;" src="https://animalso.com/wp-content/uploads/2017/01/Golden-Retriever_6.jpg" data-holder-rendered="true">
+                    <br/><br/>
+                    <strong>Power</strong>: <span class="charge-power"></span><br/>
+                    <strong>Tariff</strong>: <span class="charge-tariff"></span><br/>
+                    <strong>Coordinates</strong>: <span class="charge-latitude"></span><span> </span><span class="charge-longitude"></span><br/>
+                    <strong>Location</strong>: <span class="charge-location"></span><br/>
+
+                    <label for="appt1">Select the time to start your charging:</label>
+                    <p><input class='calendar1' cal_id='0' type="datetime-local" step="300" id="appt1" name="Time1"></p>
+                    <label for="appt2">Select the time to end your charging:</label>
+                    <p><input class='calendar2' cal_id='0' type="datetime-local" step="300" id="appt2" name="Time2"></p>
+                    <button class="btn btn-default btn-charge" type="register" data-id="0">Submit</button><br><br>
+
+                    <label for="appt3">Select beginning time to cancel charging order:</label>
+                    <p><input class='calendar3' cal_id='0' type="datetime-local" step="300" id="appt3" name="Time3"></p>
+                    <button class="btn btn-default btn-cancel" type="cancel" data-id="0">Submit</button>
+
+                    <p style="background-color:rgb(255, 255, 255);" id="Res"></p>
+                    <p style="background-color:Tomato;" id="ResultBad" class='bad'></p>
+                    <p style="background-color:green;" id="ResultGood" class='good'></p>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <script src="js/sjcl.js"></script>
+    <script src="js/sha1.js"></script>
+    <script src="js/codecHex.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

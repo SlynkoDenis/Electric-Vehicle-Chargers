@@ -204,7 +204,9 @@ contract Charger {
      * @param _startTime            start time of the order to close
      * @param _timeInMinutes        time spend by user, measured by Oracle
      */
-    function closeOrder(uint _startTime, uint16 _timeInMinutes)
+    function closeOrder(uint _startTime,
+                        uint16 _timeInMinutes,
+                        uint64 _secretSessionId)
         external
         payable
     {
@@ -229,6 +231,7 @@ contract Charger {
 
         // delete order from internal structures
         freeIndexes.push(index);
+        address payable userAddress = depositsList[index].user;
         delete depositsList[index];
         index = depositsIndexes[_startTime].reservationsStart;
         uint16 endIndex = depositsIndexes[_startTime].reservationsEnd;
@@ -247,8 +250,8 @@ contract Charger {
         delete depositsIndexes[_startTime];
 
         // refund in the end to prevent from race conditions
-        depositsList[index].user.transfer(refund);
-        emit DepositWasClosed(_startTime, _timeInMinutes, 0);
+        userAddress.transfer(refund);
+        emit DepositWasClosed(_startTime, _timeInMinutes, _secretSessionId);
     }
 
     function setIsWorking(bool _value) external {

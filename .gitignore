@@ -1,4 +1,11 @@
-**/build
 **/node_modules
-**/src
-**/*.png
+package-lock.json
+build
+src/js/truffle-contract.js
+src/js/truffle-contract.js.map
+src/js/web3.min.js
+src/js/web3.min.js.map
+src/js/sha1.js
+src/js/codecHex.js
+src/js/sjcl.js
+src/Charger.json

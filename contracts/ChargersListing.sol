@@ -34,6 +34,18 @@ contract ChargersListing {
         return chargersIndexes;
     }
 
+    function getAllChargers()
+        external
+        view
+        returns(address[] memory)
+    {
+        address[] memory ret = new address[](4);
+        for (uint64 i = 0; i < 4; i++) {
+            ret[i] = chargers[i];
+        }
+        return ret;
+    }
+
     function addCharger(uint64 id, uint16 _power, Charger.TypeOfCable _cableType, uint _tariff,
                         string calldata _latitude, string calldata _longitude,
                         address oracleAddress) external {
