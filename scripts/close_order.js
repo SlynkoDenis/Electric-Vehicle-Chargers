@@ -1,5 +1,5 @@
 var contract = artifacts.require("Charger");
-var data = require('./src/chargers.json');
+var data = require('../src/chargers.json');
 
 var ChargersListing = artifacts.require("ChargersListing");
 
