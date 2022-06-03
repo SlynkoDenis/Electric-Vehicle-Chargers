@@ -1,6 +1,6 @@
 # Electric Vehicle Chargers
 
-Chargers' rent web application (DApp) on Ethereum Blockchain Network
+Chargers' rent web application (DApp) on Ethereum Blockchain Network. Heavily inspired by [Hanada et al.](https://arxiv.org/pdf/1806.00555.pdf)
 
 ### Architecture
 
